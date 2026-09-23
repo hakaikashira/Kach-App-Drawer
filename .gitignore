@@ -424,6 +424,14 @@ FodyWeavers.xsd
 # Windows Installer files from build outputs
 *.cab
 *.msi
+# --- Kach App Drawer Custom Exclusions ---
+@Resources/Data/Apps.inc
+@Resources/Data/Usage.inc
+@Resources/Icons/*
+!@Resources/Icons/.gitkeep
+Thumbs.db
+Desktop.ini
+*.rmskin
 *.msix
 *.msm
 *.msp

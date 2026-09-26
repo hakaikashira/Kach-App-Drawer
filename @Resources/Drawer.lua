@@ -2,6 +2,7 @@ local index = 1
 local hovered = 0
 local apps = {}
 local visible = 5
+local maxApps = 64
 
 local priorities = {}
 local usage = {}
@@ -804,6 +805,27 @@ function UpdateDrawer()
             5
         )
 
+    maxApps =
+        math.floor(
+            clamp(
+                n('MaxApps', 64),
+                1,
+                64
+            )
+        )
+
+    -- VisibleApps is user-configurable, but it can never
+    -- exceed the number of physical Rainmeter icon slots
+    -- provided by AppDrawer.ini.
+    visible =
+        math.floor(
+            clamp(
+                visible,
+                1,
+                maxApps
+            )
+        )
+
     local total =
         appCount()
 
@@ -844,151 +866,212 @@ function UpdateDrawer()
             105
         )
 
-    for slot = 1, visible do
+    local cornerRadius =
+        n(
+            'CornerRadius',
+            18
+        )
+
+    -- Calculate the drawer height from VisibleApps.
+    -- This removes the need for a manually maintained
+    -- DrawerHeight variable.
+    local drawerHeight =
+        20 +
+        (visible * icon) +
+        ((visible - 1) * gap)
+
+    --------------------------------------------------------
+    -- Resize the glass background
+    --------------------------------------------------------
+
+    local shape =
+        'Rectangle 0,0,' ..
+        tostring(width) .. ',' ..
+        tostring(drawerHeight) .. ',' ..
+        tostring(cornerRadius) ..
+        ' | Fill Color 18,18,22,46 | StrokeWidth 1 | Stroke Color 255,255,255,32'
+
+    setMeter(
+        'MeterGlass',
+        'Shape',
+        shape
+    )
+
+    updateMeter('MeterGlass')
+
+    setMeter(
+        'MeterHint',
+        'Y',
+        tostring(drawerHeight - 20)
+    )
+
+    updateMeter('MeterHint')
+
+    --------------------------------------------------------
+    -- Draw every available slot.
+    -- Slots above VisibleApps are explicitly hidden so
+    -- changing VisibleApps downward never leaves stale icons.
+    --------------------------------------------------------
+
+    for slot = 1, maxApps do
 
         local meter =
             'MeterIcon' ..
             tostring(slot)
 
-        local appIndex =
-            index + slot - 1
+        if slot <= visible then
 
-        local y =
-            10 +
-            (slot - 1) *
-            (icon + gap)
+            local appIndex =
+                index + slot - 1
 
-        local size =
-            icon
+            local y =
+                10 +
+                (slot - 1) *
+                (icon + gap)
 
-        local x =
-            math.floor(
-                (width - icon) / 2
-            )
+            local size =
+                icon
 
-        local alpha =
-            normalAlpha
+            local x =
+                math.floor(
+                    (width - icon) / 2
+                )
 
-        local app =
-            apps[appIndex]
+            local alpha =
+                normalAlpha
 
-        if app and app.Path then
+            local app =
+                apps[appIndex]
 
-            local iconPath =
-                app.Icon or
-                '#@#Icons\\placeholder.png'
+            if app and app.Path then
 
-            -- Apps.inc stores icons using the #@# Rainmeter
-            -- variable. When a value is injected with !SetOption,
-            -- resolve it to a real filesystem path first.
-            if iconPath:sub(1, 3) == '#@#' then
-                iconPath =
-                    SKIN:GetVariable('@') ..
-                    iconPath:sub(4)
+                setMeter(
+                    meter,
+                    'ImageName',
+                    app.Icon or
+                    '#@#Icons\\placeholder.png'
+                )
+
+                setMeter(
+                    meter,
+                    'ToolTipText',
+                    app.Name or ''
+                )
+
+                setMeter(
+                    meter,
+                    'Hidden',
+                    '0'
+                )
+
+                setMeter(
+                    meter,
+                    'LeftMouseUpAction',
+                    '[!CommandMeasure MeasureScript "Launch(' ..
+                    tostring(slot) ..
+                    ')"]'
+                )
+
+            else
+
+                setMeter(
+                    meter,
+                    'Hidden',
+                    '1'
+                )
+
+                setMeter(
+                    meter,
+                    'ToolTipText',
+                    ''
+                )
+
+                setMeter(
+                    meter,
+                    'LeftMouseUpAction',
+                    ''
+                )
+
+            end
+
+            ----------------------------------------------------
+            -- Hover
+            ----------------------------------------------------
+
+            if hovered == slot and app then
+
+                size =
+                    n(
+                        'IconHoverSize',
+                        44
+                    )
+
+                x =
+                    math.floor(
+                        (width - size) / 2
+                    )
+
+                y =
+                    y -
+                    math.floor(
+                        (size - icon) / 2
+                    )
+
+                alpha =
+                    n(
+                        'HoverAlpha',
+                        255
+                    )
+
             end
 
             setMeter(
                 meter,
-                'ImageName',
-                iconPath
+                'X',
+                tostring(x)
             )
 
             setMeter(
                 meter,
-                'ToolTipText',
-                app.Name or ''
+                'Y',
+                tostring(y)
             )
 
             setMeter(
                 meter,
-                'Hidden',
-                '0'
+                'W',
+                tostring(size)
             )
+
+            setMeter(
+                meter,
+                'H',
+                tostring(size)
+            )
+
+            setMeter(
+                meter,
+                'ImageAlpha',
+                tostring(alpha)
+            )
+
+            updateMeter(meter)
 
         else
 
-            setMeter(
-                meter,
-                'Hidden',
-                '1'
-            )
-
-            setMeter(
-                meter,
-                'ToolTipText',
-                ''
-            )
-
-            setMeter(
-                meter,
-                'LeftMouseUpAction',
-                ''
-            )
+            -- Hide and collapse unused slots. Collapsing them
+            -- also prevents DynamicWindowSize from reserving
+            -- space for all MaxApps slots.
+            setMeter(meter, 'Hidden', '1')
+            setMeter(meter, 'X', '0')
+            setMeter(meter, 'Y', '0')
+            setMeter(meter, 'W', '1')
+            setMeter(meter, 'H', '1')
+            setMeter(meter, 'ToolTipText', '')
+            setMeter(meter, 'LeftMouseUpAction', '')
+            updateMeter(meter)
 
         end
-
-        ----------------------------------------------------
-        -- Hover
-        ----------------------------------------------------
-
-        if hovered == slot and app then
-
-            size =
-                n(
-                    'IconHoverSize',
-                    44
-                )
-
-            x =
-                math.floor(
-                    (width - size) / 2
-                )
-
-            y =
-                y -
-                math.floor(
-                    (size - icon) / 2
-                )
-
-            alpha =
-                n(
-                    'HoverAlpha',
-                    255
-                )
-
-        end
-
-        setMeter(
-            meter,
-            'X',
-            tostring(x)
-        )
-
-        setMeter(
-            meter,
-            'Y',
-            tostring(y)
-        )
-
-        setMeter(
-            meter,
-            'W',
-            tostring(size)
-        )
-
-        setMeter(
-            meter,
-            'H',
-            tostring(size)
-        )
-
-        setMeter(
-            meter,
-            'ImageAlpha',
-            tostring(alpha)
-        )
-
-        updateMeter(meter)
 
     end
 
@@ -1058,9 +1141,12 @@ function Scroll(delta)
         appCount()
 
     visible =
-        n(
-            'VisibleApps',
-            5
+        math.floor(
+            clamp(
+                n('VisibleApps', 5),
+                1,
+                n('MaxApps', 64)
+            )
         )
 
     local maxIndex =
@@ -1139,19 +1225,50 @@ local function launchAppID(appID)
         return false
     end
 
-    -- Windows launches registered AppsFolder applications
-    -- directly through their AUMID/AppID.
-    local command =
-        '["explorer.exe" "shell:AppsFolder\\' ..
-        appID ..
-        '"]'
+    local ok, result =
+        pcall(
+            function()
 
-    SKIN:Bang(command)
+                local shell =
+                    luacom.CreateObject('Shell.Application')
 
-    return true
+                local folder =
+                    shell:NameSpace(
+                        'shell:::{4234d49b-0245-4df3-b780-3893943456e1}'
+                    )
+
+                if not folder then
+                    return false
+                end
+
+                local items =
+                    folder:Items()
+
+                for i = 0, items.Count - 1 do
+
+                    local item =
+                        items:Item(i)
+
+                    if item and item.Path == appID then
+
+                        item:InvokeVerb()
+
+                        return true
+
+                    end
+
+                end
+
+                return false
+
+            end
+        )
+
+    return ok and result == true
 
 end
 
+------------------------------------------------------------
 -- Launch + usage tracking
 ------------------------------------------------------------
 

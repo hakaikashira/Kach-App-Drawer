@@ -32,6 +32,8 @@ A modern, glassmorphic Rainmeter suite that natively scans your Windows system, 
 2. Download the latest `FloatingGlassAppDrawer_v1.0.0.rmskin` package.
 3. Double-click the file to install via Rainmeter.
 4. Click **Load** to run the app drawer.
+5. when loading it takes a few sec to fully find all the apps.
+6. click refresh/refresh all and give it a minute to get fired up and then enjoy. 
 
 ---
 

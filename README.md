@@ -56,7 +56,7 @@ To manually pin favorite apps to the top, edit `@Resources/Data/AppPriority.inc`
 
 This project is 100% free and open-source. If you find it useful, consider supporting development:
 
-- **Tip / Support:** [your donations will help keep the lights on while we develop more opensource tools]
+- **Tip / Support:** [[your donations will help keep the lights on while we develop more opensource tools](https://hakaikashira.github.io/Kach-App-Drawer/)]
 - **Crypto Tips (USDT / ETH on Arbitrum/Ethereum):**
 0x895f6576127778b64F4e7356cc21d98465F8D529`
 

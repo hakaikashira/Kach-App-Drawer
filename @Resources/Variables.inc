@@ -1,14 +1,19 @@
 [Variables]
 
-VisibleApps=5
+; Number of applications visible at the same time.
+; This is the user-facing setting.
+VisibleApps=10
+
+; Maximum supported simultaneous slots.
+; The skin ships with 64 physical icon meters.
+; VisibleApps can be any value from 1 to MaxApps.
 MaxApps=64
 
-IconSize=36
+IconSize=30
 IconHoverSize=44
 IconGap=14
 
 DrawerWidth=72
-DrawerHeight=270
 CornerRadius=18
 
 NormalAlpha=105
